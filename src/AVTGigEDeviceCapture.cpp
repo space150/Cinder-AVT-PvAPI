@@ -566,7 +566,7 @@ void AVTGigEDeviceCapture::update()
 				//printf("AVTGigEDeviceCapture::update() - copying frame from ring buffer, skipped %i entries\n", bufferEntryCount-1 );
                 
                 // mono8
-                mCurrentFrame = cv::Mat( 493, 656, CV_8UC1, cameraReadBuffer);
+                mCurrentFrame = cv::Mat( 482, 646, CV_8UC1, cameraReadBuffer);
                 
                 // rgb24
                 //cv::Mat rgbFrame = cv::Mat( 493, 656, CV_8UC3, cameraReadBuffer);;

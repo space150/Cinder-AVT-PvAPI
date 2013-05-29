@@ -13,7 +13,7 @@
 #include "RingBuffer.h"
 
 #ifdef _WINDOWS
-#include "StdAfx.h"
+//#include "StdAfx.h"
 #endif
 
 #include <stdio.h>
