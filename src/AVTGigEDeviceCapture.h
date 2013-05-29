@@ -1,6 +1,5 @@
 //
 //  AVTGigEDeviceCapture.h
-//  BeerMe
 //
 //  Created by Shawn Roske on 5/6/13.
 //

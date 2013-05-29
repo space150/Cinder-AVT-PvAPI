@@ -1,6 +1,5 @@
 //
 //  RingBuffer.cpp
-//  BeerMe
 //
 //  Created by Shawn Roske on 5/6/13.
 //

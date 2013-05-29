@@ -1,62 +1,7 @@
-/*
- | ==============================================================================
- | Copyright (C) 2011 Allied Vision Technologies.  All Rights Reserved.
- |
- | Redistribution of this header file, in original or modified form, without
- | prior written consent of AVT is prohibited.
- |
- |==============================================================================
- |
- | EventCallback
- |
- | Based on StreamPnp. Adding PvCameraEventCallbackRegister mechanism,
- | allowing callback to occur on many different camera signals/events. As of
- | firmware 1.42, the following events are available:
- |   AcquisitionStart
- |   AcquisitionEnd
- |   FrameTrigger
- |   ExposureEnd
- |   AcquisitionRecordTrigger
- |   SyncIn1Rise
- |   SyncIn1Fall
- |   SyncIn2Rise
- |   SyncIn2Fall
- |   SyncIn3Rise
- |   SyncIn3Fall
- |   SyncIn4Rise
- |   SyncIn4Fall
- | See Event Controls section of the "Camera and Driver" attributes document
- | online at http://www.alliedvisiontec.com for the latest listing of supported
- | events.
- |
- | Three callback mechanisms at work here:
- | - PvLinkCallbackRegister: Callback when camera first recognized or unplugged
- | - PvCameraEventCallbackRegister: See above
- | - FrameCallback: when frame completes.
- |
- | Program flow:
- | - Main thread registers link callback, waits for Ctrl+C escape
- | - Link callback registers event callbacks, sets camera to 5 FPS, starts streaming.
- | - Event callbacks print the returned event
- | - Frame Callbacks requeue frames for streaming.
- |
- |==============================================================================
- |
- | THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
- | WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF TITLE,
- | NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR  PURPOSE ARE
- | DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- | INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- | LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- | OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED  AND ON ANY THEORY OF
- | LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- | NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- | EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- |
- |==============================================================================
- */
-
 #include "AVTGigEDeviceCapture.h"
+
+using namespace std;
+using namespace ci::app;
 
 #if defined(_LINUX) || defined(_QNX) || defined(_OSX)
 struct tms      gTMS;
@@ -85,49 +30,49 @@ void _STDCALL F_CameraEventCallback(void*                   Context,
 	{
 		switch (EventList[i].EventId) {
 			case 40000:
-				printf("EventAcquisitionStart\n");
+				console() << "EventAcquisitionStart" << endl;
 				break;
 			case 40001:
-				printf("EventAcquisitionEnd\n");
+				console() << "EventAcquisitionEnd" << endl;
 				break;
 			case 40002:
-				//printf("EventFrameTrigger\n");
+				//console() << "EventFrameTrigger" << endl;
 				break;
 			case 40003:
-				printf("EventExposureEnd\n");
+				console() << "EventExposureEnd" << endl;
 				break;
 			case 40004:
-				printf("EventAcquisitionRecordTrigger\n");
+				console() << "EventAcquisitionRecordTrigger" << endl;
 				break;
 			case 40010:
-				printf("EventSyncIn1Rise\n");
+				console() << "EventSyncIn1Rise" << endl;
 				break;
 			case 40011:
-				printf("EventSyncIn1Fall\n");
+				console() << "EventSyncIn1Fall" << endl;
 				break;
 			case 40012:
-				printf("EventSyncIn2Rise\n");
+				console() << "EventSyncIn2Rise" << endl;
 				break;
 			case 40013:
-				printf("EventSyncIn2Fall\n");
+				console() << "EventSyncIn2Fall" << endl;
 				break;
 			case 40014:
-				printf("EventSyncIn3Rise\n");
+				console() << "EventSyncIn3Rise" << endl;
 				break;
 			case 40015:
-				printf("EventSyncIn3Fall\n");
+				console() << "EventSyncIn3Fall" << endl;
 				break;
 			case 40016:
-				printf("EventSyncIn4Rise\n");
+				console() << "EventSyncIn4Rise" << endl;
 				break;
 			case 40017:
-				printf("EventSyncIn4Fall\n");
+				console() << "EventSyncIn4Fall" << endl;
 				break;
 			case 65534:
-				printf("EventOverflow error\n");
+				console() << "EventOverflow error" << endl;
 				break;
 			default:
-				printf("Event %lu\n",EventList[i].EventId);
+				console() << "Event " << EventList[i].EventId << endl;
 				break;
 		}
 	}
@@ -143,7 +88,7 @@ bool AVTGigEDeviceCapture::EventSetup()
 	// check if events supported with this camera firmware
 	if (PvAttrExists(GCamera.Handle,"EventsEnable1") == ePvErrNotFound)
 	{
-        printf("This camera does not support event notifications.\n");
+        console() << "This camera does not support event notifications." << endl;
         return false;
 	}
 	
@@ -152,52 +97,52 @@ bool AVTGigEDeviceCapture::EventSetup()
 	// e.g: Bit 1 is EventAcquisitionStart, Bit 2 is EventAcquisitionEnd, Bit 10 is EventSyncIn1Rise.
     if ((errCode = PvAttrUint32Set(GCamera.Handle,"EventsEnable1",0)) != ePvErrSuccess)
 	{
-		printf("Set EventsEnable1 err: %u\n", errCode);
+		console() << "Set EventsEnable1 err: " << errCode << endl;
 		return false;
 	}
     
 	//Set individual events (could do in one step with EventsEnable1).
 	if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventSelector","AcquisitionStart")) != ePvErrSuccess)
 	{
-		printf("Set EventsSelector err: %u\n", errCode);
+		console() << "Set EventsSelector err: " << errCode << endl;
 		return false;
 	}
     if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventNotification","On")) != ePvErrSuccess)
 	{
-		printf("Set EventsNotification err: %u\n", errCode);
+		console() << "Set EventsNotification err: " << errCode << endl;
 		return false;
 	}
     
 	if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventSelector","AcquisitionEnd")) != ePvErrSuccess)
 	{
-		printf("Set EventsSelector err: %u\n", errCode);
+		console() << "Set EventsSelector err: " << errCode << endl;
 		return false;
 	}
     if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventNotification","On")) != ePvErrSuccess)
 	{
-		printf("Set EventsNotification err: %u\n", errCode);
+		console() << "Set EventsNotification err: " << errCode << endl;
 		return false;
 	}
     
 	if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventSelector","FrameTrigger")) != ePvErrSuccess)
 	{
-		printf("Set EventsSelector err: %u\n", errCode);
+		console() << "Set EventsSelector err: " << errCode << endl;
 		return false;
 	}
     if ((errCode = PvAttrEnumSet(GCamera.Handle,"EventNotification","On")) != ePvErrSuccess)
 	{
-		printf("Set EventsNotification err: %u\n", errCode);
+		console() << "Set EventsNotification err: " << errCode << endl;
 		return false;
 	}
 	
 	//Get and print bitmask
 	PvAttrUint32Get(GCamera.Handle,"EventsEnable1", &EventBitmask);
-	printf("Events set. EventsEnable1 bitmask: %lu\n", EventBitmask);
+	console() << "Events set. EventsEnable1 bitmask: " << EventBitmask << endl;
     
     //register callback function
 	if ((errCode = PvCameraEventCallbackRegister(GCamera.Handle,F_CameraEventCallback,NULL)) != ePvErrSuccess)
     {
-		printf("PvCameraEventCallbackRegister err: %u\n", errCode);
+		console() << "PvCameraEventCallbackRegister err: " << errCode << endl;
         return false;
     }
 	return true;
@@ -250,16 +195,16 @@ void AVTGigEDeviceCapture::appendFrame(tPvFrame *pFrame)
 		}
 		else
 		{
-			printf( "AVTGigEDeviceCapture::appendFrame() - didn't get new buffer to write in the ring buffer!!!\n" );
+			console() << "AVTGigEDeviceCapture::appendFrame() - didn't get new buffer to write in the ring buffer!!!" << endl;
 		}
 	}
 	else if ( pFrame->Status == ePvErrDataLost || pFrame->Status == ePvErrDataMissing )
 	{
-		printf( "AVTGigEDeviceCapture::appendFrame() - frame data missing, are we dropping frames?\n" );
+		console() << "AVTGigEDeviceCapture::appendFrame() - frame data missing, are we dropping frames?" << endl;
 	}
 	else
 	{
-		printf( "AVTGigEDeviceCapture::appendFrame() - failed to grab frame! status: %i\n", pFrame->Status );
+		console() << "AVTGigEDeviceCapture::appendFrame() - failed to grab frame! status: " << pFrame->Status << endl;
 	}
     
     // if the frame was completed (or if data were missing/lost) we re-enqueue it
@@ -279,16 +224,16 @@ bool AVTGigEDeviceCapture::CameraSetup()
 	if ((errCode = PvCameraOpen(GCamera.UID,ePvAccessMaster,&(GCamera.Handle))) != ePvErrSuccess)
 	{
 		if (errCode == ePvErrAccessDenied)
-			printf("PvCameraOpen returned ePvErrAccessDenied:\nCamera already open, or not properly closed.\n");
+			console() << "PvCameraOpen returned ePvErrAccessDenied:\nCamera already open, or not properly closed." << endl;
 		else
-			printf("PvCameraOpen err: %u\n", errCode);
+			console() << "PvCameraOpen err: " << errCode << endl;
 		return false;
 	}
     
 	// Calculate frame buffer size
     if((errCode = PvAttrUint32Get(GCamera.Handle, "TotalBytesPerFrame", &FrameSize)) != ePvErrSuccess)
 	{
-		printf("CameraSetup: Get TotalBytesPerFrame err: %u\n", errCode);
+		console() << "CameraSetup: Get TotalBytesPerFrame err: " << errCode << endl;
 		return false;
 	}
     
@@ -304,7 +249,7 @@ bool AVTGigEDeviceCapture::CameraSetup()
 		}
         else
 		{
-			printf("CameraSetup: Failed to allocate buffers.\n");
+			console() << "CameraSetup: Failed to allocate buffers." << endl;
 			failed = true;
 		}        
         GCamera.Frames[i].Context[0] = (void*)this;
@@ -320,11 +265,11 @@ void AVTGigEDeviceCapture::CameraUnsetup()
 	
     if((errCode = PvCameraClose(GCamera.Handle)) != ePvErrSuccess)
 	{
-		printf("CameraUnSetup: PvCameraClose err: %u\n", errCode);
+		console() << "CameraUnSetup: PvCameraClose err: " << errCode << endl;
 	}
 	else
 	{
-		printf("Camera closed.\n");
+		console() << "Camera closed." << endl;
 	}
 	// delete image buffers
     for(int i=0;i<FRAMESCOUNT;i++)
@@ -350,14 +295,14 @@ bool AVTGigEDeviceCapture::CameraStart()
 	// for max allowable PacketSize/MTU/JumboFrameSize.
 	if((errCode = PvCaptureAdjustPacketSize(GCamera.Handle,8228)) != ePvErrSuccess)
 	{
-		printf("CameraStart: PvCaptureAdjustPacketSize err: %u\n", errCode);
+		console() << "CameraStart: PvCaptureAdjustPacketSize err: " << errCode << endl;
 		return false;
 	}
     
     // start driver capture stream
 	if((errCode = PvCaptureStart(GCamera.Handle)) != ePvErrSuccess)
 	{
-		printf("CameraStart: PvCaptureStart err: %u\n", errCode);
+		console() << "CameraStart: PvCaptureStart err: " << errCode << endl;
 		return false;
 	}
     
@@ -367,7 +312,7 @@ bool AVTGigEDeviceCapture::CameraStart()
 	{
 		if((errCode = PvCaptureQueueFrame(GCamera.Handle,&(GCamera.Frames[i]),FrameDoneCB)) != ePvErrSuccess)
 		{
-			printf("CameraStart: PvCaptureQueueFrame err: %u\n", errCode);
+			console() << "CameraStart: PvCaptureQueueFrame err: " << errCode << endl;
 			failed = true;
 		}
 	}
@@ -381,7 +326,7 @@ bool AVTGigEDeviceCapture::CameraStart()
        (PvAttrEnumSet(GCamera.Handle, "AcquisitionMode", "Continuous") != ePvErrSuccess) ||
        (PvCommandRun(GCamera.Handle, "AcquisitionStart") != ePvErrSuccess))
 	{
-		printf("CameraStart: failed to set camera attributes\n");
+		console() << "CameraStart: failed to set camera attributes" << endl;
 		return false;
 	}
     
@@ -396,9 +341,9 @@ void AVTGigEDeviceCapture::CameraStop()
 	
 	//stop camera receiving triggers
 	if ((errCode = PvCommandRun(GCamera.Handle,"AcquisitionStop")) != ePvErrSuccess)
-		printf("AcquisitionStop command err: %u\n", errCode);
+		console() << "AcquisitionStop command err: " << errCode << endl;
 	else
-		printf("AcquisitionStop success.\n");
+		console() << "AcquisitionStop success." << endl;
     
 	//PvCaptureQueueClear aborts any actively written frame with Frame.Status = ePvErrDataMissing
 	//Further queued frames returned with Frame.Status = ePvErrCancelled
@@ -407,17 +352,17 @@ void AVTGigEDeviceCapture::CameraStop()
 	//to give actively written frame time to complete
 	Sleep(200);
 	
-	printf("Calling PvCaptureQueueClear...\n");
+	console() << "Calling PvCaptureQueueClear..." << endl;
 	if ((errCode = PvCaptureQueueClear(GCamera.Handle)) != ePvErrSuccess)
-		printf("PvCaptureQueueClear err: %u\n", errCode);
+		console() << "PvCaptureQueueClear err: " << errCode << endl;
 	else
-		printf("...Queue cleared.\n");
+		console() << "...Queue cleared." << endl;
     
 	//stop driver stream
 	if ((errCode = PvCaptureEnd(GCamera.Handle)) != ePvErrSuccess)
-		printf("PvCaptureEnd err: %u\n", errCode);
+		console() << "PvCaptureEnd err: " << errCode << endl;
 	else
-		printf("Driver stream stopped.\n");
+		console() << "Driver stream stopped." << endl;
 }
 
 //Setup camera events and stream.
@@ -429,7 +374,7 @@ void AVTGigEDeviceCapture::HandleCameraPlugged(unsigned long UniqueId)
         
         if(CameraSetup())
         {
-            printf("Camera %lu opened\n",UniqueId);
+            console() << "Camera opened: " << UniqueId << endl;
             
             // setup event channel
             if(true)//EventSetup())
@@ -471,13 +416,13 @@ void _STDCALL CameraLinkCallback(void* Context,
     {
         case ePvLinkAdd:
         {
-			printf("LinkEvent: camera %lu recognized\n",UniqueId);
+			console() << "LinkEvent: camera recognized: " << UniqueId << endl;
             capture->HandleCameraPlugged(UniqueId);
             break;
         }
         case ePvLinkRemove:
         {
-			printf("LinkEvent: camera %lu unplugged\n",UniqueId);
+			console() << "LinkEvent: camera unplugged: " << UniqueId << endl;
             capture->HandleCameraUnplugged(UniqueId);
             
             break;
@@ -506,22 +451,22 @@ void AVTGigEDeviceCapture::setup()
 	// initialize the PvAPI
 	if((errCode = PvInitialize()) != ePvErrSuccess)
     {
-		printf("PvInitialize err: %u\n", errCode);
+		console() << "PvInitialize err: " << errCode << endl;
     }
 	else
 	{
         //IMPORTANT: Initialize camera structure. See tPvFrame in PvApi.h for more info.
 		memset(&GCamera,0,sizeof(tCamera));
         
-		printf("Waiting for camera discovery...\n");
+		console() << "Waiting for camera discovery..." << endl;
         
         // register camera plugged in callback
         if((errCode = PvLinkCallbackRegister(CameraLinkCallback,ePvLinkAdd,this)) != ePvErrSuccess)
-			printf("PvLinkCallbackRegister err: %u\n", errCode);
+			console() << "PvLinkCallbackRegister err: " << errCode << endl;
         
         // register camera unplugged callback
         if((errCode = PvLinkCallbackRegister(CameraLinkCallback,ePvLinkRemove,this)) != ePvErrSuccess)
-			printf("PvLinkCallbackRegister err: %u\n", errCode);
+			console() << "PvLinkCallbackRegister err: " << errCode << endl;
 		
 		// All camera setup, event setup, streaming, handled in ePvLinkAdd callback
     }
