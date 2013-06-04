@@ -321,7 +321,7 @@ bool AVTGigEDeviceCapture::CameraStart()
 		return false;
     
 	// set the camera to 30 FPS, continuous mode, and start camera receiving triggers
-	if((PvAttrFloat32Set(GCamera.Handle, "FrameRate", 30) != ePvErrSuccess) ||
+	if(//(PvAttrFloat32Set(GCamera.Handle, "FrameRate", 30) != ePvErrSuccess) ||
        (PvAttrEnumSet(GCamera.Handle, "FrameStartTriggerMode", "FixedRate") != ePvErrSuccess) ||
        (PvAttrEnumSet(GCamera.Handle, "AcquisitionMode", "Continuous") != ePvErrSuccess) ||
        (PvCommandRun(GCamera.Handle, "AcquisitionStart") != ePvErrSuccess))
@@ -511,11 +511,16 @@ void AVTGigEDeviceCapture::update()
 				//printf("AVTGigEDeviceCapture::update() - copying frame from ring buffer, skipped %i entries\n", bufferEntryCount-1 );
                 
                 // mono8
-                mCurrentFrame = cv::Mat( 482, 646, CV_8UC1, cameraReadBuffer);
+                //mCurrentFrame = cv::Mat( 1080, 1920 , CV_8UC1, cameraReadBuffer);
                 
                 // rgb24
-                //cv::Mat rgbFrame = cv::Mat( 493, 656, CV_8UC3, cameraReadBuffer);;
+                //cv::Mat rgbFrame = cv::Mat( 1080, 1920, CV_8UC3, cameraReadBuffer);;
                 //cv::cvtColor(rgbFrame, mCurrentFrame, CV_RGB2BGR);
+                
+                // bayer8
+                cv::Mat bayerFrame = cv::Mat( 1080, 1920, CV_8UC1, cameraReadBuffer);
+                cv::cvtColor(bayerFrame, mCurrentFrame, CV_BayerGR2RGB);
+//                cv::cvtColor(rgbFrame, mCurrentFrame, CV_RGB2BGR);
 			}
             
 			// Notify read finished to the ring buffer (so it can be loaded with new frames)
