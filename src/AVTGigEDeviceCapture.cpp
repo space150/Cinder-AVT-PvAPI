@@ -518,7 +518,7 @@ void AVTGigEDeviceCapture::update()
                 //cv::cvtColor(rgbFrame, mCurrentFrame, CV_RGB2BGR);
                 
                 // bayer8
-                cv::Mat bayerFrame = cv::Mat( 1080, 1920, CV_8UC1, cameraReadBuffer);
+                cv::Mat bayerFrame = cv::Mat( 1080, 1300, CV_8UC1, cameraReadBuffer);
                 cv::cvtColor(bayerFrame, mCurrentFrame, CV_BayerGR2RGB);
 //                cv::cvtColor(rgbFrame, mCurrentFrame, CV_RGB2BGR);
 			}
